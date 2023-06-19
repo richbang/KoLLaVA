@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>멀티-모달 서비스</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 5px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            height: 80px;
+            padding: 5px;
+        }
+
+        .form-group button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .result img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>대구대 학생을 위한 멀티-모달 서비스</h1>
+        <form id="inference-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="image">Upload Image:</label>
+                <input type="file" id="image" name="image" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="question">Question:</label>
+                <textarea id="question" name="question" required></textarea>
+            </div>
+            <div class="form-group">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('inference-form');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const imageFile = formData.get('image');
+            const question = formData.get('question');
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const imageContent = event.target.result;
+
+                const response = await fetch('/inference', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayResult(data.inference);
+                } else {
+                    displayResult('Error occurred during inference.');
+                }
+            };
+
+            reader.readAsDataURL(imageFile);
+        });
+
+        function displayResult(result) {
+            resultDiv.innerHTML = '';
+            resultDiv.style.display = 'block';
+
+            const image = document.createElement('img');
+            image.src = URL.createObjectURL(document.getElementById('image').files[0]);
+            resultDiv.appendChild(image);
+
+            const resultText = document.createElement('p');
+            resultText.textContent = result;
+            resultDiv.appendChild(resultText);
+        }
+    </script>
+</body>
+</html>
